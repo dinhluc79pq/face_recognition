@@ -1,0 +1,105 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "ClientApp",
+            "request": "launch",
+            "mainClass": "com.facerecognition/com.facerecognition.Client.ClientApp",
+            "projectName": "facerecognition"
+        },
+        {
+            "type": "java",
+            "name": "Client",
+            "request": "launch",
+            "mainClass": "com.facerecognition/com.facerecognition.Client.Client",
+            "projectName": "facerecognition"
+        },
+        {
+            "type": "java",
+            "name": "Server",
+            "request": "launch",
+            "mainClass": "com.facerecognition/com.facerecognition.Server.Server",
+            "projectName": "facerecognition"
+        },
+        {
+            "type": "java",
+            "name": "test",
+            "request": "launch",
+            "mainClass": "com.facerecognition/com.facerecognition.Server.test",
+            "projectName": "facerecognition"
+        },
+        {
+            "type": "java",
+            "name": "UserController",
+            "request": "launch",
+            "mainClass": "com.facerecognition/com.facerecognition.Server.UserController",
+            "projectName": "facerecognition"
+        },
+        {
+            "type": "java",
+            "name": "CameraTestApp",
+            "request": "launch",
+            "mainClass": "com.facerecognition/com.facerecognition.CameraTestApp",
+            "projectName": "facerecognition"
+        },
+        {
+            "type": "java",
+            "name": "CameraTest",
+            "request": "launch",
+            "mainClass": "com.facerecognition/com.facerecognition.CameraTest",
+            "projectName": "facerecognition",
+            "vmArgs": "-Djava.library.path=D:/opencv/build/java/x64"
+        },
+        {
+            "type": "java",
+            "name": "FaceRecognitionServer",
+            "request": "launch",
+            "mainClass": "com.facerecognition/com.facerecognition.Server.FaceRecognitionServer",
+            "projectName": "facerecognition",
+            "vmArgs": "-Djava.library.path=D:/opencv/build/java/x64"
+        },
+        {
+            "type": "java",
+            "name": "ClientUI",
+            "request": "launch",
+            "mainClass": "com.facerecognition/com.facerecognition.Client.ClientUI",
+            "projectName": "facerecognition",
+            "vmArgs": "-Djava.library.path=D:/opencv/build/java/x64"
+        },
+        {
+            "type": "java",
+            "name": "WebcamCaputureHelper",
+            "request": "launch",
+            "mainClass": "com.facerecognition/com.facerecognition.Client.WebcamCaputureHelper",
+            "projectName": "facerecognition",
+            "vmArgs": "-Djava.library.path=D:/opencv/build/java/x64"
+        },
+        {
+            "type": "java",
+            "name": "CheckOpenCV",
+            "request": "launch",
+            "mainClass": "com.facerecognition/com.facerecognition.Server.CheckOpenCV",
+            "projectName": "facerecognition",
+            "vmArgs": "-Djava.library.path=D:/opencv/build/java/x64"
+        },
+        {
+            "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}",
+            "vmArgs": "--module-path D:/javafx-sdk-24/lib --add-modules javafx.controls,javafx.fxml"
+        },
+        {
+            "type": "java",
+            "name": "App",
+            "request": "launch",
+            "mainClass": "com.facerecognition/com.facerecognition.App",
+            "projectName": "facerecognition",
+            "vmArgs": "-Djava.library.path=D:/opencv/build/java/x64"
+        }
+    ]
+}

@@ -1,8 +1,11 @@
 package com.facerecognition.Client;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -14,8 +17,14 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
+import java.awt.Dimension;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import javafx.util.Duration;
+import javafx.application.Platform;
+
+
 import java.time.LocalDate;
 
 import javax.imageio.ImageIO;
@@ -31,7 +40,8 @@ public class ClientApp extends Application {
     private TextField nameField;
     private DatePicker dobPicker;
     private TextField avatarPathField;
-    private WebcamCaptureHelper webcamHelper;
+    private Webcam webcam;
+    private Button btnSnap;
 
     private Client client;
     public static BooleanProperty statusProperty = new SimpleBooleanProperty(false);
@@ -56,20 +66,9 @@ public class ClientApp extends Application {
         Button btnSendToServer = new Button("📤 Gửi ảnh đến server");
         Button btnAddFace = new Button("➕ Thêm vào CSDL");
         Button btnToggleForm = new Button("- Hiện/Ẩn Form -");
-        btnCaptureWebcam.setOnAction(e -> {
-            if (webcamHelper != null) webcamHelper.startCamera();
-        });
-        // Nút "📸 Chụp ảnh"
-        Button btnSnap = new Button("📸 Chụp ảnh");
-        btnSnap.setOnAction(e -> {
-            File captured = webcamHelper.captureImage();
-            if (captured != null) {
-                selectedImageFile = captured; // gán ảnh chụp làm ảnh gửi
-                resultArea.setText("✅ Đã chụp ảnh: " + captured.getName());
-            } else {
-                resultArea.setText("❌ Chưa chụp được ảnh.");
-            }
-        });
+        btnSnap = new Button("📸 Chụp ảnh");
+        btnSnap.setVisible(false);
+        btnSnap.setManaged(false);
 
         // Result area
         resultArea = new TextArea();
@@ -109,12 +108,11 @@ public class ClientApp extends Application {
 
         // Actions
         btnSelectImage.setOnAction(e -> handleSelectImage());
-        // btnCaptureWebcam.setOnAction(e -> handleCaptureFromWebcam());
+        btnCaptureWebcam.setOnAction(e -> handleCaptureFromWebcam());
         btnSendToServer.setOnAction(e -> handleSendToServer());
         btnAddFace.setOnAction(e -> handleAddToDatabase());
-        btnToggleForm.setOnAction(e -> {
-            statusProperty.set(!statusProperty.get());
-        });
+        btnSnap.setOnAction(e -> captureWebcam());
+        btnToggleForm.setOnAction(e -> {statusProperty.set(!statusProperty.get());});
 
         formBox.visibleProperty().bind(statusProperty);
         formBox.managedProperty().bind(statusProperty);
@@ -129,6 +127,8 @@ public class ClientApp extends Application {
     }
 
     private void handleSelectImage() {
+        btnSnap.setVisible(false);
+        btnSnap.setManaged(false);
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Chọn ảnh");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Hình ảnh", "*.jpg", "*.png", "*.jpeg"));
@@ -140,17 +140,52 @@ public class ClientApp extends Application {
         }
     }
 
-    private void handleCaptureFromWebcam() {
-        Webcam webcam = Webcam.getDefault();
-        webcam.open();
-        System.out.println("hello");
-        try {
-            ImageIO.write(webcam.getImage(), "PNG", new File("hello-world.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
+    private void captureWebcam() {
+        if (webcam != null && webcam.isOpen()) {
+            BufferedImage image = webcam.getImage();
+            if (image != null) {
+                try {
+                    String filename = "img_" + System.currentTimeMillis() + ".jpg";
+                    File outputFile = new File("src/main/java/com/facerecognition/Client/captured_images/" + filename);
+                    outputFile.getParentFile().mkdirs();
+
+                    ImageIO.write(image, "JPG", outputFile);
+                    selectedImageFile = outputFile;
+
+                    Image fxImage = SwingFXUtils.toFXImage(image, null);
+                    imageView.setImage(fxImage);
+
+                    resultArea.setText("✅ Đã chụp ảnh: " + filename);
+                    
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                    resultArea.setText("❌ Lỗi khi lưu ảnh.");
+                }
+            } else {
+                resultArea.setText("❌ Không lấy được frame từ webcam.");
+            }
+        } else {
+            resultArea.setText("❌ Webcam chưa sẵn sàng.");
         }
-        // resultArea.setText("⚠️ Chức năng chụp ảnh chưa được tích hợp.");
-        // Bạn có thể dùng OpenCV + JavaFX (OpenCVFrameGrabber hoặc VideoCapture) để tích hợp webcam
+    }
+
+    private void handleCaptureFromWebcam() {
+        webcam = Webcam.getDefault();
+        webcam.setViewSize(new Dimension(640, 480));
+        webcam.open();
+        
+        btnSnap.setVisible(true);
+        btnSnap.setManaged(true);
+
+        Timeline timeline = new Timeline(new KeyFrame(Duration.millis(33), e -> {
+            BufferedImage image = webcam.getImage();
+            if (image != null) {
+                Image fxImage = SwingFXUtils.toFXImage(image, null);
+                Platform.runLater(() -> imageView.setImage(fxImage));
+            }
+        }));
+        timeline.setCycleCount(Timeline.INDEFINITE);
+        timeline.play();
     }
 
     private void handleSendToServer() {

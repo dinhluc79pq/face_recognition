@@ -29,13 +29,13 @@ public class Client {
         try {
             socket = new Socket(host, port);
 
-            // 1. Nhận public key từ server
+            // Nhận public key từ server
             ObjectInputStream objIn = new ObjectInputStream(socket.getInputStream());
             byte[] publicKeyBytes = (byte[]) objIn.readObject();
             PublicKey serverPublicKey = KeyFactory.getInstance("RSA")
                     .generatePublic(new X509EncodedKeySpec(publicKeyBytes));
 
-            // 2. Sinh AES key và gửi (mã hóa bằng RSA)
+            // Sinh AES key và gửi (mã hóa bằng RSA)
             aesKey = javax.crypto.KeyGenerator.getInstance("AES").generateKey();
             Cipher rsaCipher = Cipher.getInstance("RSA");
             rsaCipher.init(Cipher.ENCRYPT_MODE, serverPublicKey);
@@ -45,9 +45,6 @@ public class Client {
             objOut.writeObject(encryptedAesKey);
             objOut.flush();
 
-            // 3. Gắn stream để giao tiếp tiếp theo
-            // ⚠️ Hạn chế dùng thêm DataOutputStream sau ObjectOutputStream trên cùng socket.
-            // Nếu cần, bạn có thể dùng lại ObjectOutputStream để gửi byte[]
             this.reader = new DataInputStream(socket.getInputStream());
             this.writer = new DataOutputStream(socket.getOutputStream());
 
@@ -122,9 +119,6 @@ public class Client {
             return "❌ Lỗi gửi User: " + e.getMessage();
         }
     }
-
-
-    
 
     private byte[] readFileToBytes(File file) throws IOException {
         try (FileInputStream fis = new FileInputStream(file)) {

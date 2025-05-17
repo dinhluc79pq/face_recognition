@@ -3,12 +3,9 @@ package com.facerecognition.Server;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
-
 import com.facerecognition.User;
-
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -92,40 +89,19 @@ public class Server {
                 int len = reader.readInt(); // Nếu client đóng -> lỗi tại đây
                 byte[] encryptedInput = new byte[len];
                 reader.readFully(encryptedInput);
-
                 byte[] decryptedBytes = aesCipherDec.doFinal(encryptedInput);
 
-                // boolean isUserObject = false;
                 String response = "";
-
                 try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(decryptedBytes))) {
                     Object obj = ois.readObject();
                     if (obj instanceof User) {
-                        // isUserObject = true;
-
-                        response = handleAddToDatabase((User) obj);
-
-                        // Ghi ảnh người dùng
-                        // String userImagePath = "src/main/java/com/facerecognition/Server/received_images/" + user.getUid() + ".jpg";
-                        
-                        // File faceImageFile = writeBytesToFile(, userImagePath);
-                        // System.out.println("🖼️ Lưu ảnh user tại: " + faceImageFile.getAbsolutePath());
-
-                        // Gửi tới API Flask hoặc xử lý gì đó
-                        // response = processData(faceImageFile); // xử lý nhận diện từ ảnh
-
-                        
+                        response = handleAddToDatabase((User) obj);   
                     }
                 } catch (Exception ex) {
-                    // Không phải object, xử lý như ảnh thường
-                    // isUserObject = false;
-
-                    // Ghi ảnh ra file
                     File file = writeBytesToFile(decryptedBytes, IMAGE_SAVE_PATH + "/image_" + System.currentTimeMillis() + ".jpg");
                     System.out.println("📸 Đã nhận ảnh từ client: " + file.getAbsolutePath());
 
-                    // Gọi xử lý dữ liệu (ví dụ: gửi ảnh tới API Flask)
-                    response = processData(file); // có thể là kết quả nhận diện khuôn mặt
+                    response = processData(file); 
                     System.out.println(response);
                 }
 
@@ -141,7 +117,6 @@ public class Server {
     }
 
     private JSONObject postImageAPI(String urlApi, File imageFile) {
-        // File imageFile = new File(imagePath);
         if (!imageFile.exists()) {
             return null;
         }
@@ -179,9 +154,6 @@ public class Server {
 
         String responseBody = response.body();
         System.out.println(responseBody);
-        // System.out.println("→ Status: " + response.code());
-        // System.out.println("→ Response: " + responseBody);
-
         dataUserJson = new JSONObject(responseBody);
 
         return dataUserJson;
@@ -201,15 +173,16 @@ public class Server {
                 result += "--> UID: " + uid + "\n";
                 result += "--> Họ và tên: " + userFind.getName() + "\n";
                 result += "--> Ngày sinh: " + userFind.getDob() + "\n";
-                result += "--> ĐỘ KHỚP SO VỚI ẢNH: " + obj.getDouble("distance")*100 + " %\n";
+                result += "--> ĐỘ KHỚP SO VỚI ẢNH: " + String.format("%.2f", obj.getDouble("distance")*100) + " %\n";
                 break;
             
             case "fail":
-                result += "111";
-                result += "\n--> Trạng thái: Không tìm thấy\n";
+                result += "--> Trạng thái: Không tìm thấy\n";
+                result += "--> ĐỘ KHỚP SO VỚI ẢNH: " + String.format("%.2f", obj.getDouble("distance")*100) + " %\n";
                 break;
         
             default:
+                result += "--> LỖI HỆ THỐNG";
                 break;
         }
         return result;
@@ -221,9 +194,7 @@ public class Server {
         for (int i = 0; i < jsonArray.length(); i++) {
             face_encoding.add(jsonArray.getDouble(i));
         }
-
         user.setFaceEncoding(face_encoding);
-
         // Log thông tin
         System.out.println("👤 Nhận user:");
         System.out.println("  - UID: " + user.getUid());
@@ -236,14 +207,11 @@ public class Server {
             return "Đã thêm vào CSDL!";
         }
         return "Lỗi!";
-    
     }
 
     private String processData(File inputImage) {
-        // StringBuilder response = new StringBuilder(input);
         String urlApi = "http://localhost:5000/api/recognition";
         JSONObject results = this.postImageAPI(urlApi, inputImage);
-        // return "Server phản hồi: " + response.toString();
         return formatStringDataJson(results);
     }
 

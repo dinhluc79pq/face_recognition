@@ -177,15 +177,15 @@ public class ClientApp extends Application {
         btnSnap.setVisible(true);
         btnSnap.setManaged(true);
 
-        Timeline timeline = new Timeline(new KeyFrame(Duration.millis(33), e -> {
-            BufferedImage image = webcam.getImage();
-            if (image != null) {
-                Image fxImage = SwingFXUtils.toFXImage(image, null);
-                Platform.runLater(() -> imageView.setImage(fxImage));
-            }
-        }));
-        timeline.setCycleCount(Timeline.INDEFINITE);
-        timeline.play();
+        // Timeline timeline = new Timeline(new KeyFrame(Duration.millis(33), e -> {
+        //     BufferedImage image = webcam.getImage();
+        //     if (image != null) {
+        //         Image fxImage = SwingFXUtils.toFXImage(image, null);
+        //         Platform.runLater(() -> imageView.setImage(fxImage));
+        //     }
+        // }));
+        // timeline.setCycleCount(Timeline.INDEFINITE);
+        // timeline.play();
     }
 
     private void handleSendToServer() {

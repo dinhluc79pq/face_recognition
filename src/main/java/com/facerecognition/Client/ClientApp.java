@@ -103,7 +103,7 @@ public class ClientApp extends Application {
         HBox.setHgrow(formBox, javafx.scene.layout.Priority.ALWAYS);
         imageAndFormBox.setPrefWidth(700);
 
-        HBox buttonBox = new HBox(10, btnSelectImage, btnCaptureWebcam, btnSendToServer, btnToggleForm);
+        HBox buttonBox = new HBox(10, btnSelectImage, btnCaptureWebcam, btnSnap, btnSendToServer, btnToggleForm);
         VBox root = new VBox(15, imageAndFormBox, buttonBox, new Label("Kết quả:"), resultArea);
         root.setPadding(new Insets(20));
 

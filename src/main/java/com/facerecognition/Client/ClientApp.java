@@ -16,7 +16,6 @@ import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.time.LocalDate;
 
 import javax.imageio.ImageIO;
@@ -32,6 +31,7 @@ public class ClientApp extends Application {
     private TextField nameField;
     private DatePicker dobPicker;
     private TextField avatarPathField;
+    private WebcamCaptureHelper webcamHelper;
 
     private Client client;
     public static BooleanProperty statusProperty = new SimpleBooleanProperty(false);
@@ -56,6 +56,20 @@ public class ClientApp extends Application {
         Button btnSendToServer = new Button("📤 Gửi ảnh đến server");
         Button btnAddFace = new Button("➕ Thêm vào CSDL");
         Button btnToggleForm = new Button("- Hiện/Ẩn Form -");
+        btnCaptureWebcam.setOnAction(e -> {
+            if (webcamHelper != null) webcamHelper.startCamera();
+        });
+        // Nút "📸 Chụp ảnh"
+        Button btnSnap = new Button("📸 Chụp ảnh");
+        btnSnap.setOnAction(e -> {
+            File captured = webcamHelper.captureImage();
+            if (captured != null) {
+                selectedImageFile = captured; // gán ảnh chụp làm ảnh gửi
+                resultArea.setText("✅ Đã chụp ảnh: " + captured.getName());
+            } else {
+                resultArea.setText("❌ Chưa chụp được ảnh.");
+            }
+        });
 
         // Result area
         resultArea = new TextArea();
@@ -95,7 +109,7 @@ public class ClientApp extends Application {
 
         // Actions
         btnSelectImage.setOnAction(e -> handleSelectImage());
-        btnCaptureWebcam.setOnAction(e -> handleCaptureFromWebcam());
+        // btnCaptureWebcam.setOnAction(e -> handleCaptureFromWebcam());
         btnSendToServer.setOnAction(e -> handleSendToServer());
         btnAddFace.setOnAction(e -> handleAddToDatabase());
         btnToggleForm.setOnAction(e -> {

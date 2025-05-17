@@ -1,6 +1,8 @@
 package com.facerecognition.Client;
 
 import javafx.application.Application;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -14,9 +16,12 @@ import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.time.LocalDate;
 
 import javax.imageio.ImageIO;
 
+import com.facerecognition.User;
 import com.github.sarxos.webcam.Webcam;
 
 public class ClientApp extends Application {
@@ -29,6 +34,7 @@ public class ClientApp extends Application {
     private TextField avatarPathField;
 
     private Client client;
+    public static BooleanProperty statusProperty = new SimpleBooleanProperty(false);
 
     @Override
     public void start(Stage primaryStage) {
@@ -49,12 +55,13 @@ public class ClientApp extends Application {
         Button btnCaptureWebcam = new Button("📷 Chụp từ webcam");
         Button btnSendToServer = new Button("📤 Gửi ảnh đến server");
         Button btnAddFace = new Button("➕ Thêm vào CSDL");
+        Button btnToggleForm = new Button("- Hiện/Ẩn Form -");
 
         // Result area
         resultArea = new TextArea();
         resultArea.setEditable(false);
         resultArea.setWrapText(true);
-        resultArea.setPrefHeight(100);
+        resultArea.setPrefHeight(200);
 
         // === Form bên phải ===
         nameField = new TextField();
@@ -82,7 +89,7 @@ public class ClientApp extends Application {
         HBox.setHgrow(formBox, javafx.scene.layout.Priority.ALWAYS);
         imageAndFormBox.setPrefWidth(700);
 
-        HBox buttonBox = new HBox(10, btnSelectImage, btnCaptureWebcam, btnSendToServer);
+        HBox buttonBox = new HBox(10, btnSelectImage, btnCaptureWebcam, btnSendToServer, btnToggleForm);
         VBox root = new VBox(15, imageAndFormBox, buttonBox, new Label("Kết quả:"), resultArea);
         root.setPadding(new Insets(20));
 
@@ -91,6 +98,12 @@ public class ClientApp extends Application {
         btnCaptureWebcam.setOnAction(e -> handleCaptureFromWebcam());
         btnSendToServer.setOnAction(e -> handleSendToServer());
         btnAddFace.setOnAction(e -> handleAddToDatabase());
+        btnToggleForm.setOnAction(e -> {
+            statusProperty.set(!statusProperty.get());
+        });
+
+        formBox.visibleProperty().bind(statusProperty);
+        formBox.managedProperty().bind(statusProperty);
 
         client = new Client("localhost", 12345);
         if (!client.connect()) {
@@ -141,9 +154,26 @@ public class ClientApp extends Application {
             resultArea.setText("⚠️ Vui lòng chọn ảnh trước.");
             return;
         }
+        if (nameField.getText().isEmpty() || dobPicker.getValue() == null || avatarPathField.getText().isEmpty()) {
+            resultArea.setText("⚠️ Vui lòng nhập đầy đủ thông tin.");
+            return;
+        }
 
-        String response = client.sendImage(selectedImageFile);
-        resultArea.setText("📥 Phản hồi từ server:\n" + response);
+        try {
+            String uid = "" + System.currentTimeMillis(); // sinh mã ngẫu nhiên
+            String name = nameField.getText();
+            LocalDate dob = dobPicker.getValue();
+            String avatarPath = avatarPathField.getText();
+
+            User user = new User(uid, name, dob, avatarPath, null);
+            String response = client.sendUser(user);
+
+            resultArea.setText("📤 Đã gửi thông tin người dùng.\n📥 Phản hồi từ server:\n" + response);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            resultArea.setText("❌ Lỗi đọc file ảnh: " + e.getMessage());
+        }
     }
 
     public static void main(String[] args) {

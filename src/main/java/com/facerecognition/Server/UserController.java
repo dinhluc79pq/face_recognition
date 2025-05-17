@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.facerecognition.User;
+
 public class UserController {
     private List<User> userList;
 
@@ -124,6 +126,15 @@ public class UserController {
             }
         }
     }
+
+    public User findUserByUid(List<User> users, String uid) {
+    for (User user : users) {
+        if (user.getUid().equals(uid)) {
+            return user;
+        }
+    }
+    return null;
+}
 
     public static void main(String[] args) {
         UserController test = new UserController();

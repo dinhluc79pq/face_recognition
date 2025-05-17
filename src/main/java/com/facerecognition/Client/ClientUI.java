@@ -21,7 +21,7 @@ import javax.imageio.ImageIO;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import com.facerecognition.Server.User;
+import com.facerecognition.User;
 import com.facerecognition.Server.UserController;
 import com.github.sarxos.webcam.Webcam;
 

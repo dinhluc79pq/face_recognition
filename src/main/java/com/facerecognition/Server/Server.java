@@ -177,8 +177,16 @@ public class Server {
                 break;
             
             case "fail":
+                JSONArray results = obj.getJSONArray("result");
                 result += "--> Trạng thái: Không tìm thấy\n";
-                result += "--> ĐỘ KHỚP SO VỚI ẢNH: " + String.format("%.2f", obj.getDouble("distance")*100) + " %\n";
+                result += "--> STT\tUID\t\t\tĐỘ KHỚP\n";
+                for (int i = 0; i < results.length(); i++) {
+                    JSONObject match = results.getJSONObject(i);
+                    String uidFace = match.getString("uid");
+                    double distance = match.getDouble("distance");
+
+                    result += "--> " + (i + 1) + "\t" + uidFace + "\t" + String.format("%.2f", distance) + "\n";
+                }
                 break;
         
             default:

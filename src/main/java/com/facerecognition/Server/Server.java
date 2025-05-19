@@ -86,7 +86,7 @@ public class Server {
 
             while (true) {
                 String IMAGE_SAVE_PATH = "src/main/java/com/facerecognition/Server/received_images";
-                int len = reader.readInt(); // Nếu client đóng -> lỗi tại đây
+                int len = reader.readInt();
                 byte[] encryptedInput = new byte[len];
                 reader.readFully(encryptedInput);
                 byte[] decryptedBytes = aesCipherDec.doFinal(encryptedInput);
@@ -138,7 +138,7 @@ public class Server {
 
         HttpClient clientResponse = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:5000/api/recognition"))
+                .uri(URI.create(urlApi))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(json.toString()))
                 .build();
@@ -173,13 +173,14 @@ public class Server {
                 result += "--> UID: " + uid + "\n";
                 result += "--> Họ và tên: " + userFind.getName() + "\n";
                 result += "--> Ngày sinh: " + userFind.getDob() + "\n";
+                result += "--> Đường dẫn đến ảnh gốc: " + userFind.getAvata() + "\n";
                 result += "--> ĐỘ KHỚP SO VỚI ẢNH: " + String.format("%.2f", obj.getDouble("distance")*100) + " %\n";
                 break;
             
             case "fail":
                 JSONArray results = obj.getJSONArray("result");
                 result += "--> Trạng thái: Không tìm thấy\n";
-                result += "--> STT\tUID\t\t\tĐỘ KHỚP\n";
+                result += "--> STT\tUID\t\t\t\tĐỘ KHỚP\n";
                 for (int i = 0; i < results.length(); i++) {
                     JSONObject match = results.getJSONObject(i);
                     String uidFace = match.getString("uid");
@@ -194,6 +195,39 @@ public class Server {
                 break;
         }
         return result;
+    }
+
+    private String formatStringDetected(JSONObject obj) {
+        StringBuilder result = new StringBuilder();
+
+        String status = obj.optString("status");
+        int faceCount = obj.optInt("faces_detected", 0);
+
+        result.append("--> Trạng thái: ").append(status.toUpperCase()).append("\n");
+        result.append("--> Số khuôn mặt phát hiện: ").append(faceCount).append("\n");
+
+        if (obj.has("matches")) {
+            JSONArray matches = obj.getJSONArray("matches");
+            result.append("✅ Khuôn mặt nhận diện được: ").append(matches.length()).append("\n");
+            result.append("--> STT\tUID\t\t\t\tĐỘ KHỚP\n");
+
+            for (int i = 0; i < matches.length(); i++) {
+                JSONObject match = matches.getJSONObject(i);
+                String uid = match.getString("uid");
+                double distance = match.getDouble("distance");
+
+                result.append("--> ").append((i + 1)).append("\t").append(uid)
+                    .append("\t").append(String.format("%.2f", distance)).append("\n");
+            }
+        } else {
+            result.append("⚠️ Không có khuôn mặt nào khớp với dữ liệu.\n");
+        }
+
+        if (obj.has("unmatched")) {
+            JSONArray unmatched = obj.getJSONArray("unmatched");
+            result.append("❌ Khuôn mặt chưa xác định: ").append(unmatched.length()).append("\n");
+        }
+        return result.toString();
     }
 
     private String handleAddToDatabase(User user) {
@@ -220,6 +254,7 @@ public class Server {
     private String processData(File inputImage) {
         String urlApi = "http://localhost:5000/api/recognition";
         JSONObject results = this.postImageAPI(urlApi, inputImage);
+        // return formatStringDetected(results);
         return formatStringDataJson(results);
     }
 

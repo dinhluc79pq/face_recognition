@@ -1,0 +1,11 @@
+.button-camera {
+    -fx-background-color: #99d0f5;
+}
+
+.button:hover {
+    -fx-background-color: #f4ed94;
+}
+
+.button-to-server {
+    -fx-background-color: #77de77;
+}

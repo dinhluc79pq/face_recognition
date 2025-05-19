@@ -35,7 +35,6 @@ public class ClientApp extends Application {
     private File selectedImageFile;
     private TextField nameField;
     private DatePicker dobPicker;
-    private TextField avatarPathField;
     private Webcam webcam;
     private Button btnSnap;
 
@@ -46,17 +45,15 @@ public class ClientApp extends Application {
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Face Recognition Client");
 
-        // Image display
         imageView = new ImageView();
         imageView.setFitHeight(250);
         imageView.setFitWidth(300);
         imageView.setPreserveRatio(true);
 
         VBox imageBoxView = new VBox(imageView);
-        imageBoxView.setAlignment(Pos.CENTER); // căn giữa theo trục ngang
+        imageBoxView.setAlignment(Pos.CENTER);
         imageBoxView.setPrefWidth(320);
 
-        // Buttons
         Button btnSelectImage = new Button("📁 Chọn ảnh từ máy");
         Button btnCaptureWebcam = new Button("📷 Chụp từ webcam");
         Button btnSendToServer = new Button("📤 Gửi ảnh đến server");
@@ -66,27 +63,28 @@ public class ClientApp extends Application {
         btnSnap.setVisible(false);
         btnSnap.setManaged(false);
 
-        // Result area
+        btnSelectImage.getStyleClass().addAll("button-camera", "button");
+        btnCaptureWebcam.getStyleClass().addAll("button-camera", "button");
+        btnSendToServer.getStyleClass().addAll("button", "button-to-server");
+        btnToggleForm.getStyleClass().addAll("button");
+        btnAddFace.getStyleClass().addAll("button");
+
         resultArea = new TextArea();
         resultArea.setEditable(false);
         resultArea.setWrapText(true);
         resultArea.setPrefHeight(200);
 
-        // === Form bên phải ===
         nameField = new TextField();
         dobPicker = new DatePicker();
-        avatarPathField = new TextField();
+        dobPicker.getEditor().setDisable(true);
 
-        // Bọc imageView để nó không bị đẩy
         VBox imageBox = new VBox(imageBoxView);
         imageBox.setPadding(new Insets(10));
-        imageBox.setPrefWidth(320); // fix chiều rộng khung ảnh
+        imageBox.setPrefWidth(320);
 
-        // Form bên phải (căn lề phải)
         VBox formBox = new VBox(10,
                 new Label("Tên người dùng:"), nameField = new TextField(),
                 new Label("Ngày sinh:"), dobPicker = new DatePicker(),
-                new Label("Đường dẫn ảnh avatar:"), avatarPathField = new TextField(),
                 btnAddFace
         );
         formBox.setPadding(new Insets(10));
@@ -118,8 +116,15 @@ public class ClientApp extends Application {
             resultArea.setText("❌ Không thể kết nối đến server.");
         }
 
-        primaryStage.setScene(new Scene(root, 560, 550));
+        Scene scene = new Scene(root, 560, 550);
+        scene.getStylesheets().add(getClass().getResource("css/style.css").toExternalForm());
+
+        primaryStage.setScene(scene);
         primaryStage.show();
+
+        // primaryStage.setScene(new Scene(root, 560, 550));
+        // scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        // primaryStage.show();
     }
 
     private void handleSelectImage() {
@@ -199,18 +204,18 @@ public class ClientApp extends Application {
             resultArea.setText("⚠️ Vui lòng chọn ảnh trước.");
             return;
         }
-        if (nameField.getText().isEmpty() || dobPicker.getValue() == null || avatarPathField.getText().isEmpty()) {
+        if (nameField.getText().isEmpty() || dobPicker.getValue() == null) {
             resultArea.setText("⚠️ Vui lòng nhập đầy đủ thông tin.");
             return;
         }
 
         try {
-            String uid = "" + System.currentTimeMillis(); // sinh mã ngẫu nhiên
+            String uid = "" + System.currentTimeMillis();
             String name = nameField.getText();
             LocalDate dob = dobPicker.getValue();
-            String avatarPath = avatarPathField.getText();
+            String avataPath = selectedImageFile.getAbsolutePath();
 
-            User user = new User(uid, name, dob, avatarPath, null);
+            User user = new User(uid, name, dob, avataPath, null);
             String response = client.sendUser(user);
 
             resultArea.setText("📤 Đã gửi thông tin người dùng.\n📥 Phản hồi từ server:\n" + response);

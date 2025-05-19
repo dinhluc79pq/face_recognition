@@ -54,9 +54,10 @@ public class ClientApp extends Application {
         imageBoxView.setAlignment(Pos.CENTER);
         imageBoxView.setPrefWidth(320);
 
-        Button btnSelectImage = new Button("📁 Chọn ảnh từ máy");
-        Button btnCaptureWebcam = new Button("📷 Chụp từ webcam");
-        Button btnSendToServer = new Button("📤 Gửi ảnh đến server");
+        Button btnSelectImage = new Button("📁 Chọn ảnh");
+        Button btnCaptureWebcam = new Button("📷 Chụp ảnh Cam");
+        Button btnSendToServer = new Button("📤 Nhận diện");
+        Button btnDetectObjects = new Button("📤 Phát hiện");
         Button btnAddFace = new Button("➕ Thêm vào CSDL");
         Button btnToggleForm = new Button("- Hiện/Ẩn Form -");
         btnSnap = new Button("📸 Chụp ảnh");
@@ -66,6 +67,7 @@ public class ClientApp extends Application {
         btnSelectImage.getStyleClass().addAll("button-camera", "button");
         btnCaptureWebcam.getStyleClass().addAll("button-camera", "button");
         btnSendToServer.getStyleClass().addAll("button", "button-to-server");
+        btnDetectObjects.getStyleClass().addAll("button", "button-to-server");
         btnToggleForm.getStyleClass().addAll("button");
         btnAddFace.getStyleClass().addAll("button");
 
@@ -96,14 +98,15 @@ public class ClientApp extends Application {
         HBox.setHgrow(formBox, javafx.scene.layout.Priority.ALWAYS);
         imageAndFormBox.setPrefWidth(700);
 
-        HBox buttonBox = new HBox(10, btnSelectImage, btnCaptureWebcam, btnSnap, btnSendToServer, btnToggleForm);
+        HBox buttonBox = new HBox(10, btnSelectImage, btnCaptureWebcam, btnSnap, btnSendToServer, btnDetectObjects, btnToggleForm);
         VBox root = new VBox(15, imageAndFormBox, buttonBox, new Label("Kết quả:"), resultArea);
         root.setPadding(new Insets(20));
 
         // Actions
         btnSelectImage.setOnAction(e -> handleSelectImage());
         btnCaptureWebcam.setOnAction(e -> handleCaptureFromWebcam());
-        btnSendToServer.setOnAction(e -> handleSendToServer());
+        btnSendToServer.setOnAction(e -> handleSendToServer(true)); //nhận diện
+        btnDetectObjects.setOnAction(e -> handleSendToServer(false)); //phát hiện
         btnAddFace.setOnAction(e -> handleAddToDatabase());
         btnSnap.setOnAction(e -> captureWebcam());
         btnToggleForm.setOnAction(e -> {statusProperty.set(!statusProperty.get());});
@@ -111,7 +114,7 @@ public class ClientApp extends Application {
         formBox.visibleProperty().bind(statusProperty);
         formBox.managedProperty().bind(statusProperty);
 
-        client = new Client("localhost", 12345);
+        client = new Client("192.168.4.25", 12345);
         if (!client.connect()) {
             resultArea.setText("❌ Không thể kết nối đến server.");
         }
@@ -121,10 +124,6 @@ public class ClientApp extends Application {
 
         primaryStage.setScene(scene);
         primaryStage.show();
-
-        // primaryStage.setScene(new Scene(root, 560, 550));
-        // scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
-        // primaryStage.show();
     }
 
     private void handleSelectImage() {
@@ -189,13 +188,13 @@ public class ClientApp extends Application {
         // timeline.play();
     }
 
-    private void handleSendToServer() {
+    private void handleSendToServer(boolean checkAction) {
         if (selectedImageFile == null) {
             resultArea.setText("⚠️ Vui lòng chọn ảnh trước.");
             return;
         }
 
-        String response = client.sendImage(selectedImageFile);
+        String response = client.sendImage(selectedImageFile, checkAction);
         resultArea.setText("📥 Phản hồi từ server:\n" + response);
     }
 

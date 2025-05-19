@@ -56,7 +56,7 @@ public class Client {
         }
     }
 
-    public String sendImage(File imageFile) {
+    public String sendImage(File imageFile, boolean checkAction) {
         try {
             // Đọc ảnh thành byte[]
             byte[] imageBytes = readFileToBytes(imageFile);
@@ -68,6 +68,7 @@ public class Client {
 
             // Gửi
             writer.writeInt(encryptedData.length);
+            writer.writeBoolean(checkAction);
             writer.write(encryptedData);
             writer.flush();
 

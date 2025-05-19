@@ -87,6 +87,7 @@ public class Server {
             while (true) {
                 String IMAGE_SAVE_PATH = "src/main/java/com/facerecognition/Server/received_images";
                 int len = reader.readInt();
+                boolean check = reader.readBoolean();
                 byte[] encryptedInput = new byte[len];
                 reader.readFully(encryptedInput);
                 byte[] decryptedBytes = aesCipherDec.doFinal(encryptedInput);
@@ -100,8 +101,13 @@ public class Server {
                 } catch (Exception ex) {
                     File file = writeBytesToFile(decryptedBytes, IMAGE_SAVE_PATH + "/image_" + System.currentTimeMillis() + ".jpg");
                     System.out.println("📸 Đã nhận ảnh từ client: " + file.getAbsolutePath());
-
-                    response = processData(file); 
+                    
+                    if (check) {
+                        response = processData(file); 
+                    }
+                    else {
+                        response = processToDetected(file);
+                    }
                     System.out.println(response);
                 }
 
@@ -208,16 +214,20 @@ public class Server {
 
         if (obj.has("matches")) {
             JSONArray matches = obj.getJSONArray("matches");
+            UserController users = new UserController();
+            users.getListUserDatabase();
+    
             result.append("✅ Khuôn mặt nhận diện được: ").append(matches.length()).append("\n");
-            result.append("--> STT\tUID\t\t\t\tĐỘ KHỚP\n");
+            result.append("--> STT\tUID\t\t\t\tHọ và tên\t\t\t\tĐỘ KHỚP\n");
 
             for (int i = 0; i < matches.length(); i++) {
                 JSONObject match = matches.getJSONObject(i);
                 String uid = match.getString("uid");
+                User userFind = users.findUserByUid(users.getUserList(), uid); 
                 double distance = match.getDouble("distance");
 
-                result.append("--> ").append((i + 1)).append("\t").append(uid)
-                    .append("\t").append(String.format("%.2f", distance)).append("\n");
+                result.append("--> ").append((i + 1)).append("\t").append(uid).append("\t").append(userFind.getName())
+                    .append("\t\t").append(String.format("%.2f", distance)).append("\n");
             }
         } else {
             result.append("⚠️ Không có khuôn mặt nào khớp với dữ liệu.\n");
@@ -251,10 +261,15 @@ public class Server {
         return "Lỗi!";
     }
 
+    private String processToDetected(File inputImage) {
+        String urlApi = "http://localhost:5000/api/detected";
+        JSONObject results = this.postImageAPI(urlApi, inputImage);
+        return formatStringDetected(results);
+    }
+
     private String processData(File inputImage) {
         String urlApi = "http://localhost:5000/api/recognition";
         JSONObject results = this.postImageAPI(urlApi, inputImage);
-        // return formatStringDetected(results);
         return formatStringDataJson(results);
     }
 
